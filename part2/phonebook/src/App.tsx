@@ -55,30 +55,36 @@ const App = () => {
             ...personAlreadyExists,
             number: number,
           })
-          .then((returnedPerson) =>
+          .then((returnedPerson) => {
             setPersons(
               persons.map((person) =>
                 person.id !== personAlreadyExists.id ? person : returnedPerson
               )
-            )
-          )
+            );
+            setNotificationMessage(
+              `Person number '${personAlreadyExists.name}' has been successfully modified`
+            );
+            setNotificationType("success");
+          })
+
           .catch((error) => {
             console.log(error);
-            setNotificationMessage(
-              `Person '${personAlreadyExists.name}' was already removed from server`
-            );
-            setNotificationType("error");
+            if (error.response?.data?.error) {
+              setNotificationMessage(error.response?.data?.error);
+              setNotificationType("error");
+            } else {
+              setNotificationMessage(
+                `Person '${personAlreadyExists.name}' was already removed from server`
+              );
+              setNotificationType("error");
+              setPersons(
+                persons.filter((person) => person.id !== personAlreadyExists.id)
+              );
+            }
             setTimeout(() => {
               setNotificationMessage(null);
             }, 5000);
-            setPersons(
-              persons.filter((person) => person.id !== personAlreadyExists.id)
-            );
           });
-        setNotificationMessage(
-          `Person number '${personAlreadyExists.name}' has been successfully modified`
-        );
-        setNotificationType("success");
       }
     } else {
       const personToAdd = {
@@ -88,13 +94,19 @@ const App = () => {
       };
       numberService
         .createPerson(personToAdd)
-        .then((returnedPerson) => setPersons(persons.concat(returnedPerson)))
+        .then((returnedPerson) => {
+          setNotificationMessage(
+            `Person '${personToAdd.name}' successfully added`
+          );
+          setNotificationType("success");
+          setPersons(persons.concat(returnedPerson));
+        })
         .catch((error) => {
           console.error(`Error adding person: ${personToAdd.name}`, error);
+          setNotificationMessage(error.response?.data?.error);
+          setNotificationType("error");
           // Handle error - show a message to the user, rollback changes, etc.
         });
-      setNotificationMessage(`Person '${personToAdd.name}' successfully added`);
-      setNotificationType("success");
     }
   };
 
@@ -103,10 +115,15 @@ const App = () => {
     if (window.confirm(`Delete ${personToDelete?.name} ?`)) {
       numberService
         .deletePerson(id)
-        .then(() => setPersons(persons.filter((person) => person.id !== id)))
+        .then(() => {
+          setNotificationMessage("Person has been deleted");
+          setNotificationType("success");
+          setPersons(persons.filter((person) => person.id !== id));
+        })
         .catch((error) => {
           console.error(`Error deleting person`, error);
-          // Handle error - show a message to the user, rollback changes, etc.
+          setNotificationMessage(error.response?.data?.error);
+          setNotificationType("error");
         });
     }
   };
