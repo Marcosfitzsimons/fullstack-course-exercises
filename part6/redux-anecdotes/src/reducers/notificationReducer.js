@@ -19,7 +19,7 @@ export const { setNewNotification, removeNotification } = notificationSlice.acti
 
 export const setNotification = (message, seconds) => {
     const ml = seconds * 1000
-    return async dispatch => {
+    return dispatch => {
         dispatch(setNewNotification(message))
         setTimeout(() => {
             dispatch(removeNotification())
