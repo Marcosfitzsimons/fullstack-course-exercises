@@ -7,6 +7,15 @@ usersRouter.get('/', async (request, response) => {
   response.json(users)
 })
 
+usersRouter.get('/:id', async (request, response) => {
+  const id = request.params.id
+
+  if (!id) response.status(404).send('User not found')
+
+  const user = await User.findById(id).populate('blogs', { title: 1, likes: 1 })
+  response.json(user)
+})
+
 usersRouter.post('/', async (request, response) => {
   if (!request.body.username || !request.body.password) return response.status(400).send('Username and password are required')
   const { username, name, password } = request.body
