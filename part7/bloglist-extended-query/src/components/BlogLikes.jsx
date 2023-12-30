@@ -1,12 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import blogService from "../services/blogs";
-import { useNotificationDispatch } from "../context/NotificationContext";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 const BlogLikes = ({ blog }) => {
   const queryClient = useQueryClient();
-
-  const dispatch = useNotificationDispatch();
 
   const updateBlogMutation = useMutation({
     mutationFn: blogService.update,
@@ -15,11 +13,14 @@ const BlogLikes = ({ blog }) => {
         ...blog,
         likes: blog.likes + 1,
       }); // Optimistic update
-      const blogs = queryClient.getQueryData(["blogs"]);
-      queryClient.setQueryData(
-        ["blogs"],
-        blogs.filter((blog) => blog.id !== updatedBlog.id).concat(updatedBlog)
-      );
+      toast.success(`Blog "${blog.title}" liked successfully`);
+    },
+    onError: (err) => {
+      console.log(err);
+      const errorMsg = err.response?.data?.error
+        ? err.response?.data?.error
+        : "An error has occurred, try again later";
+      toast.error(errorMsg);
     },
   });
 
@@ -30,16 +31,6 @@ const BlogLikes = ({ blog }) => {
       comments: commentsWithOnlyId,
       likes: blog.likes + 1,
     });
-    dispatch({
-      type: "SHOW",
-      payload: {
-        content: `${blog.title} successfully liked`,
-        type: "success",
-      },
-    });
-    setTimeout(() => {
-      dispatch({ type: "REMOVE" });
-    }, 5000);
   };
 
   return (
@@ -47,7 +38,7 @@ const BlogLikes = ({ blog }) => {
       <p>
         {blog.likes} {blog.likes === 1 ? "like" : "likes"}
       </p>
-      <Button size="sm" va onClick={increaseLikes}>
+      <Button size="sm" type="button" onClick={increaseLikes}>
         Like
       </Button>
     </div>

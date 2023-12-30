@@ -6,8 +6,6 @@ import loginService from "../services/login";
 import { sortedByMostLiked } from "../lib/utils";
 import Blog from "./Blog";
 import NewBlogDrawer from "./NewBlogDrawer";
-import { toast } from "sonner";
-import { Button } from "./ui/button";
 
 const Blogs = () => {
   const navigate = useNavigate();
@@ -48,18 +46,6 @@ const Blogs = () => {
   return (
     <div className="w-8/12 mx-auto flex flex-col justify-center items-center gap-2 px-2">
       <NewBlogDrawer />
-      <Button
-        onClick={() =>
-          toast("Event has been created", {
-            action: {
-              label: "Undo",
-              onClick: () => console.log("Undo"),
-            },
-          })
-        }
-      >
-        Open toast
-      </Button>
       <h3 className="text-xl font-bold my-2">List of blogs</h3>
       {blogs && (
         <div className="max-w-2xl mx-auto flex flex-col items-start gap-2">

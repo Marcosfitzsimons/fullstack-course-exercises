@@ -9,13 +9,13 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useField } from "../hooks";
-import { useNotificationDispatch } from "../context/NotificationContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import blogService from "../services/blogs";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const NewBlogDrawer = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,47 +23,36 @@ const NewBlogDrawer = () => {
   const author = useField("text");
   const url = useField("text");
 
-  const dispatch = useNotificationDispatch();
-
   const queryClient = useQueryClient();
 
   const newBlogMutation = useMutation({
     mutationFn: blogService.create,
     onSuccess: (newBlog) => {
-      setIsOpen(false);
       const blogs = queryClient.getQueryData(["blogs"]);
       queryClient.setQueryData(["blogs"], blogs.concat(newBlog));
-      dispatch({
-        type: "SHOW",
-        payload: {
-          content: `A new blog ${newBlog.title} by ${newBlog.author} successfully added`,
-          type: "success",
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: "REMOVE" });
-      }, 5000);
+      setIsOpen(false);
+      title.reset();
+      author.reset();
+      url.reset();
+      toast.success(`New Blog "${newBlog.title}" created successfully`);
     },
     onError: (err) => {
       const errorMsg = err.response?.data?.error
         ? err.response?.data?.error
         : "An error has occurred, try again later";
-
-      dispatch({
-        type: "SHOW",
-        payload: {
-          content: errorMsg,
-          type: "error",
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: "REMOVE" });
-      }, 5000);
+      toast.error(errorMsg);
     },
   });
 
   const handleOnSubmit = async (e) => {
     e.preventDefault();
+    if (
+      !title.attributes.value ||
+      !author.attributes.value ||
+      !url.attributes.value
+    ) {
+      return toast.error("You must fill in all fields before sending");
+    }
     newBlogMutation.mutate({
       title: title.attributes.value,
       author: author.attributes.value,

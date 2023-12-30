@@ -2,12 +2,10 @@ import React from "react";
 import { Button } from "./ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import blogService from "../services/blogs";
-import { useNotificationDispatch } from "../context/NotificationContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const RemoveButton = ({ blog }) => {
-  const dispatch = useNotificationDispatch();
-
   const queryClient = useQueryClient();
 
   const navigate = useNavigate();
@@ -20,23 +18,20 @@ const RemoveButton = ({ blog }) => {
         ["blogs"],
         blogs.filter((b) => b.id !== blog.id)
       );
+      navigate("/");
+      toast.success(`Blog "${blog.title}" deleted successfully`);
+    },
+    onError: (err) => {
+      const errorMsg = err.response?.data?.error
+        ? err.response?.data?.error
+        : "An error has occurred, try again later";
+      toast.error(errorMsg);
     },
   });
 
   const handleRemove = async () => {
     if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
       deleteBlogMutation.mutate(blog.id);
-      navigate("/");
-      dispatch({
-        type: "SHOW",
-        payload: {
-          content: `${blog.title} successfully removed`,
-          type: "success",
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: "REMOVE" });
-      }, 5000);
     }
   };
   return (

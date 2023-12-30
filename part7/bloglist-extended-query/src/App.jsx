@@ -57,7 +57,7 @@ const App = () => {
           }
         />
       </Routes>
-      <Toaster position="top-center" />
+      <Toaster />
     </div>
   );
 };

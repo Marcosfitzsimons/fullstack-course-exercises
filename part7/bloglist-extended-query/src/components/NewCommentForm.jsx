@@ -1,14 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNotificationDispatch } from "../context/NotificationContext";
 import { useField } from "../hooks";
 import blogService from "../services/blogs";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 const NewCommentForm = ({ blog }) => {
   const comment = useField("text");
-
-  const dispatch = useNotificationDispatch();
 
   const queryClient = useQueryClient();
 
@@ -19,32 +17,15 @@ const NewCommentForm = ({ blog }) => {
         ...blog,
         comments: blog.comments.concat(newComment),
       }); // Optimistic update
-      dispatch({
-        type: "SHOW",
-        payload: {
-          content: `A new comment ${newComment.content} successfully added`,
-          type: "success",
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: "REMOVE" });
-      }, 5000);
+      comment.reset();
+      toast.success(`New comment "${newComment.content}" succesfully added`);
     },
-    onError: (err) => {
-      const errorMsg = err.response?.data?.error
-        ? err.response?.data?.error
-        : "An error has occurred, try again later";
 
-      dispatch({
-        type: "SHOW",
-        payload: {
-          content: errorMsg,
-          type: "error",
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: "REMOVE" });
-      }, 5000);
+    onError: (err) => {
+      const errorMsg = err.response?.data
+        ? err.response?.data
+        : "An error has occurred, try again later";
+      toast.error(errorMsg);
     },
   });
 
